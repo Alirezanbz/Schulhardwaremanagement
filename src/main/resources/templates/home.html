@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home</title>
+  <link rel="stylesheet" href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css">
+  <script src="/webjars/jquery/3.6.0/jquery.min.js"></script>
+  <script src="/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="container mt-3">
+  <h2>Gegenstände Tabelle</h2>
+  <table id="gegenstaendeTable" class="table table-striped">
+    <thead class="table-dark">
+    <tr>
+      <th>Name</th>
+      <th>Beschreibung</th>
+      <th>Lagerort</th>
+      <th>Gebäude</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <a href="/add-item" class="btn btn-primary mt-3">Gegenstand hinzufügen</a>
+</div>
+
+<script>
+  fetch('/api/gegenstaende')
+          .then(response => response.json())
+          .then(data => {
+            const table = document.getElementById('gegenstaendeTable').getElementsByTagName('tbody')[0];
+            data.forEach(item => {
+              let row = table.insertRow();
+              row.insertCell(0).innerHTML = item.gegenstandsDetail.detailsName;
+              row.insertCell(1).innerHTML = item.gegenstandsDetail.beschreibung;
+              row.insertCell(2).innerHTML = item.lagerort.lagerortName;
+              row.insertCell(3).innerHTML = item.lagerort.gebaeude.gebaeudeName;
+              row.insertCell(4).innerHTML = item.status;
+            });
+          })
+          .catch(error => console.error('Fehler:', error));
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    if (success) {
+      const alertPlaceholder = document.createElement('div');
+      alertPlaceholder.innerHTML = '<div class="alert alert-success" role="alert">Erfolg: Gegenstand erfolgreich hinzugefügt!</div>';
+      document.querySelector('.container').prepend(alertPlaceholder);
+      setTimeout(() => { alertPlaceholder.style.display = 'none'; }, 4000);
+    }
+  });
+</script>
+</body>
+</html>
