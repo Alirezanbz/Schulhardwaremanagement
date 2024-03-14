@@ -9,6 +9,7 @@
 <body>
 
 <div class="container mt-3">
+  <a href="/login" class="btn btn-info mt-3" id="authButton">Einloggen</a>
   <h2>Gegenstände Tabelle</h2>
   <table id="gegenstaendeTable" class="table table-striped">
     <thead class="table-dark">
@@ -24,35 +25,90 @@
     <tbody>
     </tbody>
   </table>
-  <a href="/add-item" class="btn btn-primary mt-3">Gegenstand hinzufügen</a>
+  <a href="/add-item" class="btn btn-primary mt-3 d-none" id="addItemButton">Gegenstand hinzufügen</a>
+  <a href="/warenkorb" class="btn btn-success mt-3 d-none" id="viewCartButton">Warenkorb ansehen</a>
 </div>
 
 <script>
-  fetch('/api/gegenstaende')
-          .then(response => response.json())
-          .then(data => {
-            const table = document.getElementById('gegenstaendeTable').getElementsByTagName('tbody')[0];
-            data.forEach(item => {
-              let row = table.insertRow();
-              row.insertCell(0).innerHTML = item.gegenstandsDetail.detailsName;
-              row.insertCell(1).innerHTML = item.gegenstandsDetail.beschreibung;
-              row.insertCell(2).innerHTML = item.lagerort.lagerortName;
-              row.insertCell(3).innerHTML = item.lagerort.gebaeude.gebaeudeName;
-              row.insertCell(4).innerHTML = item.status;
-            });
-          })
-          .catch(error => console.error('Fehler:', error));
 
-  document.addEventListener('DOMContentLoaded', (event) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success');
-    if (success) {
-      const alertPlaceholder = document.createElement('div');
-      alertPlaceholder.innerHTML = '<div class="alert alert-success" role="alert">Erfolg: Gegenstand erfolgreich hinzugefügt!</div>';
-      document.querySelector('.container').prepend(alertPlaceholder);
-      setTimeout(() => { alertPlaceholder.style.display = 'none'; }, 4000);
-    }
+  function loadItems(showAddToCartButton) {
+    fetch('/api/gegenstaende')
+            .then(response => response.json())
+            .then(data => {
+              const table = document.getElementById('gegenstaendeTable').getElementsByTagName('tbody')[0];
+              table.innerHTML = '';
+              data.forEach(item => {
+                let row = table.insertRow();
+                row.insertCell(0).innerHTML = item.gegenstandsDetail.detailsName;
+                row.insertCell(1).innerHTML = item.gegenstandsDetail.beschreibung;
+                row.insertCell(2).innerHTML = item.lagerort.lagerortName;
+                row.insertCell(3).innerHTML = item.lagerort.gebaeude.gebaeudeName;
+                row.insertCell(4).innerHTML = item.status;
+
+                if (showAddToCartButton) {
+                  let buttonCell = row.insertCell(5);
+                  let button = document.createElement('button');
+                  button.innerText = 'Zum Warenkorb hinzufügen';
+                  button.className = 'btn btn-primary btn-zum-warenkorb-hinzufuegen';
+                  button.onclick = function() {
+                    fetch('/api/warenkorb/add', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ gegenstandId: item.gegenstandsID, name: item.gegenstandsDetail.detailsName})
+                    })
+                            .then(response => response.json())
+                            .then(data => {
+                              console.log('Gegenstand hinzugefügt', data);
+                            })
+                            .catch(error => console.error('Fehler:', error));
+                  };
+                  buttonCell.appendChild(button);
+                }
+              });
+            }).catch(error => console.error('Fehler beim Laden der Gegenstände:', error));
+  }
+
+
+  function checkAuthenticationAndRole() {
+    fetch('/api/auth')
+            .then(response => response.json())
+            .then(data => {
+              if (data.isAuthenticated) {
+                authButton.innerHTML = 'Abmelden';
+                authButton.href = '/logout';
+                authButton.classList.remove('btn-info');
+                authButton.classList.add('btn-warning');  //
+
+                loadItems(data.isTeacher);
+                if (data.isTeacher) {
+                  document.querySelector('#addItemButton').classList.remove('d-none');
+                  document.querySelector('#viewCartButton').classList.remove('d-none');
+                } else {
+                  document.querySelector('#addItemButton').style.display = 'none';
+                  document.querySelector('#viewCartButton').style.display = 'none';
+                }
+              } else {
+                authButton.innerHTML = 'Einloggen';
+                authButton.href = "/login";
+                authButton.classList.remove('btn-warning');
+                authButton.classList.add('btn-info');
+                loadItems(false);
+                document.querySelector('#addItemButton').style.display = 'none';
+                document.querySelector('#viewCartButton').style.display = 'none';
+                document.querySelector('#loginButton').classList.remove('d-none');
+              }
+            }).catch(error => console.error('Fehler beim Abrufen der Authentifizierung:', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadItems();
+    checkAuthenticationAndRole();
   });
+
+
+
 </script>
 </body>
 </html>

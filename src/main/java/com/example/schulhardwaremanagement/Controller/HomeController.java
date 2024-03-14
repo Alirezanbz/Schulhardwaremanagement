@@ -15,5 +15,12 @@ public class HomeController {
     public String addItem() {
         return "add-item";
     }
+
+    @GetMapping("/warenkorb")
+    public String openWarenkorb() {
+        return "warenkorb";
+    }
+
+
 }
 
