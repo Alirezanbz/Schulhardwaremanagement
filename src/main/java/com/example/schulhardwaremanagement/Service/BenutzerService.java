@@ -43,8 +43,20 @@ public class BenutzerService implements UserDetailsService {
         return new User(benutzer.getEmail(), benutzer.getPasswort(), authorities);
     }
 
+    public String findUserDetailsByChipId(String chipID) {
+        Optional<Benutzer> benutzer = getBenutzerByChipId(chipID);
+        return benutzer.map(b -> b.getVorname() + " " + b.getName())
+                .orElse("Benutzer nicht gefunden");
+    }
 
 
+    public Optional<Benutzer> findeBenutzerByChipId(String nuid) {
+        return benutzerRepository.findByChipID(nuid);
+    }
 
+
+    public Optional<Benutzer> getBenutzerByChipId(String chipID) {
+        return benutzerRepository.findByChipID(chipID);
+    }
 }
 

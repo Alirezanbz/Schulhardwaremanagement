@@ -9,7 +9,7 @@ public class Benutzer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer benutzerID;
-    private Integer chipID;
+    private String chipID;
     private String passwort;
     private String name;
     private String vorname;
@@ -32,11 +32,11 @@ public class Benutzer {
         this.benutzerID = benutzerID;
     }
 
-    public Integer getChipID() {
+    public String getChipID() {
         return chipID;
     }
 
-    public void setChipID(Integer chipID) {
+    public void setChipID(String chipID) {
         this.chipID = chipID;
     }
 

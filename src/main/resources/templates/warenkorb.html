@@ -16,9 +16,12 @@
     <input type="text" class="form-control" id="emailSearch" placeholder="Suche nach Benutzer per E-Mail">
     <div class="input-group-append">
       <button class="btn btn-outline-secondary" type="button" onclick="sucheBenutzer()">Suche</button>
+      <button class="btn btn-primary" id="startScan" onclick="startPolling()">Andere Person suchen</button>
     </div>
   </div>
   <div id="suchErgebnis" class="mb-3"></div>
+
+
 
   <h4>Datum:</h4>
   <p id="heutigesDatum"></p>
@@ -36,13 +39,24 @@
 </div>
 
 <script>
+
+  let pollingInterval;
+
   document.addEventListener('DOMContentLoaded', () => {
 
+    initializePage();
+
+    startPolling();
+  });
+
+  function initializePage() {
     const heute = new Date();
     const datumString = heute.toLocaleDateString('de-DE');
     document.getElementById('heutigesDatum').innerText = datumString;
+    loadWarenkorb();
+  }
 
-
+  function loadWarenkorb() {
     fetch('/api/warenkorb')
             .then(response => response.json())
             .then(warenkorb => {
@@ -58,15 +72,65 @@
               });
             })
             .catch(error => console.error('Fehler beim Laden des Warenkorbs:', error));
-  });
+  }
+
+
+
+  function pollForScannedUser() {
+    fetch('/api/rfid/person')
+            .then(response => {
+              if (response.ok) {
+                stopPolling();
+                return response.json();
+              } else if (response.status === 404 || response.status === 400) {
+                return response.text().then(text => { throw new Error(text); });
+              } else {
+                throw new Error('Unknown error occurred');
+              }
+            })
+            .then(user => {
+              if (user) {
+                document.getElementById('suchErgebnis').innerHTML = `<strong>Ausleiher:</strong> ${user.vorname} ${user.name}`;
+                document.getElementById('emailSearch').value = "";
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              document.getElementById('suchErgebnis').innerHTML = error.message;
+            });
+  }
+
+
+  function startPolling() {
+    if (!pollingInterval) {
+      pollingInterval = setInterval(pollForScannedUser, 5000);
+    }
+  }
+
+  function stopPolling() {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
 
   function removeItem(gegenstandId) {
     console.log('Remove item:', gegenstandId);
   }
 
+
+
   function sucheBenutzer() {
-    const email = document.getElementById('emailSearch').value;
-    fetch(`/api/benutzer/suchen?email=${email}`)
+    const emailOrRFID = document.getElementById('emailSearch').value;
+    let url;
+
+
+    if (emailOrRFID.includes('@')) {
+      url = `/api/benutzer/suchen?email=${emailOrRFID}`;
+    } else {
+
+      url = `/api/benutzer/chip/${emailOrRFID}`;
+    }
+
+    fetch(url)
             .then(response => {
               if (response.ok) {
                 return response.text();
@@ -81,6 +145,9 @@
               document.getElementById('suchErgebnis').textContent = error.message;
             });
   }
+
+
+
 </script>
 
 </body>

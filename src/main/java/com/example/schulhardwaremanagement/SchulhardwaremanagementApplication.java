@@ -8,6 +8,7 @@ public class SchulhardwaremanagementApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SchulhardwaremanagementApplication.class, args);
+
     }
 
 }

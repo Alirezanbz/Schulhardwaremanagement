@@ -21,7 +21,7 @@ public class SecurityConfiguration {
 
 
                 .authorizeRequests(authz -> authz
-                        .requestMatchers("/", "/home", "/api/gegenstaende","/webjars/bootstrap/5.1.3/css/bootstrap.min.css","/webjars/jquery/3.6.0/jquery.min.js","/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js","/login").permitAll()
+                        .requestMatchers("/", "/home", "/api/gegenstaende","/webjars/bootstrap/5.1.3/css/bootstrap.min.css","/webjars/jquery/3.6.0/jquery.min.js","/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js","/login","/api/benutzer/**","/api/benutzer/chip/**").permitAll()
                         .requestMatchers("/warenkorb","/api/warenkorb/add","/api/benutzer/suchen").hasAuthority("ROLE_LEHRER")
                         .anyRequest().authenticated()
                 )

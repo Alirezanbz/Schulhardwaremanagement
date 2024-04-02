@@ -1,10 +1,12 @@
 package com.example.schulhardwaremanagement.Controller;
 
+import com.example.schulhardwaremanagement.DTO.BenutzerDto;
 import com.example.schulhardwaremanagement.DTO.GegenstandDto;
 import com.example.schulhardwaremanagement.Entity.Benutzer;
 import com.example.schulhardwaremanagement.Entity.Gegenstand;
 import com.example.schulhardwaremanagement.Service.BenutzerService;
 import com.example.schulhardwaremanagement.Service.GegenstandService;
+import com.example.schulhardwaremanagement.Service.LastScannedUserService;
 import com.example.schulhardwaremanagement.Warenkorb;
 import com.example.schulhardwaremanagement.WarenkorbItems;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +26,9 @@ public class HomeRestController {
 
     @Autowired
     private BenutzerService benutzerService;
+
+    @Autowired
+    private LastScannedUserService lastScannedUserService;
 
     @GetMapping("/api/gegenstaende")
     public List<Gegenstand> getAllGegenstaende() {
@@ -80,6 +85,41 @@ public class HomeRestController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/api/benutzer/chip/{chipID}")
+    public ResponseEntity<String> sucheBenutzerByChipId(@PathVariable String chipID) {
+        Optional<Benutzer> benutzerOptional = benutzerService.findeBenutzerByChipId(chipID);
+        return benutzerOptional
+                .map(benutzer -> {
+                    lastScannedUserService.setLastScannedUser(benutzer);
+                    System.out.println("Benutzer: " + benutzer.getVorname() + " " + benutzer.getName());
+                    return ResponseEntity.ok().body(benutzer.getVorname() + " " + benutzer.getName());
+                })
+                .orElseGet(() -> {
+                    lastScannedUserService.clearLastScannedUser();
+                    lastScannedUserService.setLastStatusMessage("Benutzer not found for chipID: " + chipID);
+                    System.out.println("Benutzer not found for chipID: " + chipID);
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
+
+    @GetMapping("/api/rfid/person")
+    public ResponseEntity<?> getLatestScannedUser() {
+        if (lastScannedUserService.getLastStatusMessage().isEmpty()) {
+            return lastScannedUserService.getLastScannedUser()
+                    .map(user -> ResponseEntity.ok().body(new BenutzerDto(user.getVorname(), user.getName())))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } else {
+
+            return ResponseEntity.badRequest().body(lastScannedUserService.getLastStatusMessage());
+        }
+    }
+
+
+
+
+
 
 }
 
