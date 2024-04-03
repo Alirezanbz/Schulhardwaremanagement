@@ -2,7 +2,9 @@ package com.example.schulhardwaremanagement;
 
 import com.fazecast.jSerialComm.SerialPort;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -13,7 +15,7 @@ public class SerialPortReader {
 
     public void initialize() {
         SerialPort[] ports = SerialPort.getCommPorts();
-        String portName = "COM5";
+        String portName = "COM6";
 
         for (SerialPort port : ports) {
             if (port.getSystemPortName().equals(portName)) {
@@ -74,6 +76,7 @@ public class SerialPortReader {
 
     private void sendChipIdToServer(String chipId) {
         try {
+
             URL url = new URL(BASE_URL + chipId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -83,16 +86,33 @@ public class SerialPortReader {
             System.out.println("Sending 'GET' request to URL : " + url);
             System.out.println("Response Code : " + responseCode);
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+
+            int messageToArduino;
+            if (responseCode == 200) {
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                messageToArduino = 1;
+                System.out.println("Sending '1' to Arduino.");
+            } else {
+                messageToArduino = 0;
+                System.out.println("Sending '0' to Arduino.");
             }
-            in.close();
 
+            try {
+                OutputStream outputStream = serialPort.getOutputStream();
+                outputStream.write(messageToArduino);
+                outputStream.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-            System.out.println(response.toString());
 
             connection.disconnect();
         } catch (Exception e) {
@@ -100,8 +120,4 @@ public class SerialPortReader {
         }
     }
 
-    public static void main(String[] args) {
-        SerialPortReader reader = new SerialPortReader();
-        reader.initialize();
-    }
 }
