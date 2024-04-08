@@ -52,7 +52,6 @@ public class SerialPortReader {
                 byte[] readBuffer = new byte[serialPort.bytesAvailable()];
                 int numRead = serialPort.readBytes(readBuffer, readBuffer.length);
 
-
                 for (int i = 0; i < numRead; i++) {
                     char readChar = (char) readBuffer[i];
                     if (readChar >= ' ') {
@@ -76,7 +75,6 @@ public class SerialPortReader {
 
     private void sendChipIdToServer(String chipId) {
         try {
-
             URL url = new URL(BASE_URL + chipId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -99,12 +97,12 @@ public class SerialPortReader {
 
                 messageToArduino = 1;
                 System.out.println("Sending '1' to Arduino.");
-
+/*
                 URL loginURL = new URL("http://localhost:8080/login");
                 HttpURLConnection loginConnection = (HttpURLConnection) loginURL.openConnection();
                 loginConnection.setRequestMethod("POST");
                 loginConnection.setRequestProperty("Accept", "application/json");
-
+                loginConnection.disconnect();*/
             } else {
                 messageToArduino = 0;
                 System.out.println("Sending '0' to Arduino.");
@@ -117,7 +115,6 @@ public class SerialPortReader {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
 
             connection.disconnect();
         } catch (Exception e) {

@@ -43,9 +43,7 @@
   let pollingInterval;
 
   document.addEventListener('DOMContentLoaded', () => {
-
     initializePage();
-
     startPolling();
   });
 
@@ -126,7 +124,6 @@
     if (emailOrRFID.includes('@')) {
       url = `/api/benutzer/suchen?email=${emailOrRFID}`;
     } else {
-
       url = `/api/benutzer/chip/${emailOrRFID}`;
     }
 
