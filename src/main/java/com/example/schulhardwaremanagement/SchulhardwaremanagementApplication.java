@@ -10,7 +10,5 @@ public class SchulhardwaremanagementApplication {
         SpringApplication.run(SchulhardwaremanagementApplication.class, args);
         SerialPortReader reader = new SerialPortReader();
         reader.initialize();
-
     }
-
 }

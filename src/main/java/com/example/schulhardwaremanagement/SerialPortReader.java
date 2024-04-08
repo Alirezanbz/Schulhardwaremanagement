@@ -15,7 +15,7 @@ public class SerialPortReader {
 
     public void initialize() {
         SerialPort[] ports = SerialPort.getCommPorts();
-        String portName = "COM6";
+        String portName = "COM5";
 
         for (SerialPort port : ports) {
             if (port.getSystemPortName().equals(portName)) {
@@ -86,7 +86,6 @@ public class SerialPortReader {
             System.out.println("Sending 'GET' request to URL : " + url);
             System.out.println("Response Code : " + responseCode);
 
-
             int messageToArduino;
             if (responseCode == 200) {
 
@@ -100,6 +99,12 @@ public class SerialPortReader {
 
                 messageToArduino = 1;
                 System.out.println("Sending '1' to Arduino.");
+
+                URL loginURL = new URL("http://localhost:8080/login");
+                HttpURLConnection loginConnection = (HttpURLConnection) loginURL.openConnection();
+                loginConnection.setRequestMethod("POST");
+                loginConnection.setRequestProperty("Accept", "application/json");
+
             } else {
                 messageToArduino = 0;
                 System.out.println("Sending '0' to Arduino.");

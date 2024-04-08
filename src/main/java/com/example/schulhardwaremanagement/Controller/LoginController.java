@@ -26,8 +26,6 @@ public class LoginController {
 
     @PostMapping("/login")
     public String performLogin(@RequestParam String username, @RequestParam String password) {
-
-
         return "home";
     }
 
