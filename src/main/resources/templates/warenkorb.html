@@ -20,6 +20,11 @@
     </div>
   </div>
   <div id="suchErgebnis" class="mb-3"></div>
+  <h4>Verleiher:</h4>
+  <div class="mb-3">
+    <span id="verleiherFullName"><!-- Verleiher Full Name --></span>
+  </div>
+
 
 
 
@@ -70,6 +75,11 @@
                               `;
                 list.appendChild(listItem);
               });
+              if (warenkorb.verleiher) {
+                document.getElementById('verleiherFullName').textContent = `${warenkorb.verleiher.vorname} ${warenkorb.verleiher.name}`;
+              } else {
+                document.getElementById('verleiherFullName').textContent = 'Nicht verfügbar';
+              }
             })
             .catch(error => console.error('Fehler beim Laden des Warenkorbs:', error));
   }
@@ -102,14 +112,23 @@
 
 
   function startPolling() {
-    if (!pollingInterval) {
-      pollingInterval = setInterval(pollForScannedUser, 5000);
-    }
+    stopPolling(); // Ensure any existing polling is stopped first
+    pollingInterval = setInterval(pollForScannedUser, 5000);
   }
 
+
+  document.getElementById('startScan').addEventListener('click', function() {
+    startPolling();
+
+    document.getElementById('suchErgebnis').innerHTML = '';
+  });
+
+
   function stopPolling() {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
   }
 
   function removeItem(gegenstandId) {
@@ -140,6 +159,7 @@
             })
             .then(data => {
               document.getElementById('suchErgebnis').innerHTML = `<strong>Ausleiher:</strong> ${data}`;
+              stopPolling();
             })
             .catch(error => {
               document.getElementById('suchErgebnis').textContent = error.message;

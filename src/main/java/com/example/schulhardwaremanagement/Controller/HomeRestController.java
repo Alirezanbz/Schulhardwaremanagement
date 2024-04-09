@@ -11,6 +11,8 @@ import com.example.schulhardwaremanagement.Warenkorb;
 import com.example.schulhardwaremanagement.WarenkorbItems;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,12 +61,27 @@ public class HomeRestController {
     }
 
     @GetMapping("/api/warenkorb")
-    public Warenkorb getWarenkorb(HttpSession session) {
+    public ResponseEntity<Warenkorb> getWarenkorb(HttpSession session) {
         Warenkorb warenkorb = (Warenkorb) session.getAttribute("warenkorb");
         if (warenkorb == null) {
             warenkorb = new Warenkorb();
+
         }
-        return warenkorb;
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null && authentication.isAuthenticated()){
+            String username = authentication.getName();
+
+            Optional<Benutzer> verleiherOptional = benutzerService.findeBenutzerByEmail(username);
+            Warenkorb finalWarenkorb = warenkorb;
+            verleiherOptional.ifPresent(verleiher -> {
+                BenutzerDto verleiherDto = new BenutzerDto(verleiher.getVorname(),verleiher.getName());
+                finalWarenkorb.setVerleiher(verleiherDto);
+            });
+
+        }
+        session.setAttribute("warenkorb", warenkorb);
+        return ResponseEntity.ok(warenkorb);
     }
 
     @PostMapping("/api/warenkorb/add")

@@ -50,6 +50,10 @@ public class BenutzerService implements UserDetailsService {
     }
 
 
+    public Optional<Benutzer> findeBenutzerByEmail(String email){
+     return benutzerRepository.findByEmail(email);
+    }
+
     public Optional<Benutzer> findeBenutzerByChipId(String nuid) {
         return benutzerRepository.findByChipID(nuid);
     }

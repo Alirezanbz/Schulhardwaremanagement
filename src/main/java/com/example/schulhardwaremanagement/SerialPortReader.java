@@ -15,7 +15,7 @@ public class SerialPortReader {
 
     public void initialize() {
         SerialPort[] ports = SerialPort.getCommPorts();
-        String portName = "COM6";
+        String portName = "COM7";
 
         for (SerialPort port : ports) {
             if (port.getSystemPortName().equals(portName)) {
